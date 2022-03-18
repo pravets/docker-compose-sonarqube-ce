@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  sonarqube:
+    container_name: sq_sonarqube
+    image: sonarqube:9.3.0-community
+    restart: always
+    expose:
+      - 9000
+    ports:
+      - "9000:9000"
+    networks:
+      - sonarnet
+    environment:
+      - sonar.jdbc.url=jdbc:postgresql://db:5432/sonar
+      - sonar.jdbc.username=${POSTGRES_USER}
+      - sonar.jdbc.password=${POSTGRES_PASSWORD}
+      - sonar.search.javaAdditionalOpts=-Dnode.store.allow_mmap=false
+    volumes:
+      - ./sonarqube/conf:/opt/sonarqube/conf
+      - ./sonarqube/logs:/opt/sonarqube/logs
+      - ./sonarqube/data:/opt/sonarqube/data
+      - ./sonarqube/extensions:/opt/sonarqube/extensions
+      - ./sonarqube/bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+
+  db:
+    container_name: sq_db
+    image: postgres
+    restart: always
+    networks:
+      - sonarnet
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgresql:/var/lib/postgresql
+      - ./postgresql_data:/var/lib/postgresql/data
+  
+networks:
+  sonarnet:
